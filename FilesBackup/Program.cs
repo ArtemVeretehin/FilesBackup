@@ -1,47 +1,52 @@
 ﻿using System.Text.Json;
+using NLog;
+using NLog.Config;
 
-Console.WriteLine("Нажмите любую кнопку для запуска программы");
+LogManager.Configuration = new XmlLoggingConfiguration("NLog.config");
+Logger logger = LogManager.GetLogger("Common");
+
+Console.WriteLine("Нажмите любую кнопку для запуска резервного копирования");
 Console.ReadLine();
+
+logger.Info("Пользователь подтвердил запуск резервного копирования");
 
 
 //Создаем контейнер для настроек директорий
 Backuper? DirectoryConfig_Instance;
 
-//Считываем конфиг, десеарилизуем настройки в из JSON в контейнер
-using (FileStream Stream = new FileStream(@"..\..\..\DirectoryConfig.json", FileMode.Open))
+
+//Считываем конфиг, десеарилизуем настройки из JSON в контейнер
+using (FileStream Stream = new FileStream(@"DirectoryConfig.json", FileMode.Open))
 {
+    logger.Info("Началась десериализация конфигурации резервного копирования из JSON");
+
     DirectoryConfig_Instance = await JsonSerializer.DeserializeAsync<Backuper>(Stream);
+
+    logger.Info("Конфигурация получена");
 }
 
+logger.Info("Заполнение листа объектов DirectoryInfo на основе исходных директорий");
 
+//Заполнение DirectoryInfo-листа у экземпляра класса Backuper
 DirectoryConfig_Instance?.DirectoryInfoList_Fill();
 
-try
-{ 
-    DirectoryConfig_Instance?.Backup();
-}
-catch (Exception ex)
+
+
+//Проверяем существует ли целевая директория
+if (Directory.Exists(DirectoryConfig_Instance?.DestinationFolder))
 {
-    Console.WriteLine(ex.Message);
+    //Если лист объектов DirectoryInfo не равен 0 (а значит в конфиге были указаны исходные папки)
+    if (DirectoryConfig_Instance.StartDirectoryInfos != null)
+    {
+        DirectoryConfig_Instance?.Backup(logger);
+        logger.Info("Резервное копирование выполнено успешно!");
+    }
+    else
+    {
+        logger.Error("В конфигурации не указано ни одной исходной папки");
+    }
 }
-
-
-
-
-
-
-
-//Консольное приложение для резервного копирования файлов в архив.
-
-//В файле настроек хранятся пути для исходной и целевой папки.
-//При запуске программы происходит создание папки с временным штампом в целевой папке и копирование в неё всех доступных файлов из исходной. Требуется обрабатывать ситуации с невозможностью доступа к файлам в исходной папке.
-
-//Пункты со звездочкой являются дополнительными и не обязательны для выполнения.
-
-//* Файл настроек имеет формат JSON. - СДЕЛАЛ
-//* Есть возможность указать несколько исходных папок. - СДЕЛАЛ
-//* Ведется журналирование процесса копирования. Каждый запуск создает свой файл журнала. Уровень журналирования можно указать в файле настроек.
-//Примеры распределения событий:
-//•	Error - Ошибки приложения.Например, те, которые вызвали неожиданное падение.
-//•	Info - Основные события приложения: старт приложения, обработка одной исходной папки или обработанные ошибки.
-//•	Debug - Отладочная информация. Например, скопирован отдельный файл
+else
+{
+    logger.Error("Целевая папка не указана в конфигурации, либо не существует");
+}
