@@ -31,7 +31,7 @@ internal class Backuper
         //Создаем директорию для текущего сеанса резервного копирования
         Directory.CreateDirectory(CurrentSessionDirectory);
 
-        logger.Info("Создана директория для текущего сеанса резервного копирования");
+        logger.Info("Создана директория для текущего сеанса резервного копирования.");
 
         //Для каждой исходной директории
         foreach (DirectoryInfo StartDirectoryInfo in StartDirectoryInfos)
@@ -46,7 +46,7 @@ internal class Backuper
                 {
                     string FullBackupPath = System.IO.Path.Combine(CurrentSessionDirectory, file.Name);
                     file.CopyTo(FullBackupPath, true);
-                    logger.Debug($"Копирование файла {file.Name} выполнено успешно");
+                    logger.Debug($"Копирование файла {file.Name} выполнено успешно.");
                 }
             }
             catch (Exception ex)

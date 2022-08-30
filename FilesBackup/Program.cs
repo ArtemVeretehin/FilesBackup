@@ -5,10 +5,10 @@ using NLog.Config;
 LogManager.Configuration = new XmlLoggingConfiguration("NLog.config");
 Logger logger = LogManager.GetLogger("Common");
 
-Console.WriteLine("Нажмите любую кнопку для запуска резервного копирования");
+Console.WriteLine("Нажмите любую клавишу для запуска резервного копирования.");
 Console.ReadLine();
 
-logger.Info("Пользователь подтвердил запуск резервного копирования");
+logger.Info("Пользователь подтвердил запуск резервного копирования.");
 
 
 //Создаем контейнер для настроек директорий
@@ -18,14 +18,14 @@ Backuper? DirectoryConfig_Instance;
 //Считываем конфиг, десеарилизуем настройки из JSON в контейнер
 using (FileStream Stream = new FileStream(@"DirectoryConfig.json", FileMode.Open))
 {
-    logger.Info("Началась десериализация конфигурации резервного копирования из JSON");
+    logger.Info("Началась десериализация конфигурации резервного копирования из JSON.");
 
     DirectoryConfig_Instance = await JsonSerializer.DeserializeAsync<Backuper>(Stream);
 
-    logger.Info("Конфигурация получена");
+    logger.Info("Конфигурация получена.");
 }
 
-logger.Info("Заполнение листа объектов DirectoryInfo на основе исходных директорий");
+logger.Info("Заполнение листа объектов DirectoryInfo на основе исходных директорий.");
 
 //Заполнение DirectoryInfo-листа у экземпляра класса Backuper
 DirectoryConfig_Instance?.DirectoryInfoList_Fill();
@@ -40,13 +40,20 @@ if (Directory.Exists(DirectoryConfig_Instance?.DestinationFolder))
     {
         DirectoryConfig_Instance?.Backup(logger);
         logger.Info("Резервное копирование выполнено успешно!");
+        Console.WriteLine("Резервное копирование выполнено успешно! Нажмите любую клавишу для завершения сеанса!");
+        Console.ReadLine();
+
     }
     else
     {
-        logger.Error("В конфигурации не указано ни одной исходной папки");
+        logger.Error("В конфигурации не указано ни одной исходной папки!");
+        Console.WriteLine("В конфигурации не указано ни одной исходной папки! Нажмите любую клавишу для завершения сеанса!");
+        Console.ReadLine();
     }
 }
 else
 {
-    logger.Error("Целевая папка не указана в конфигурации, либо не существует");
+    logger.Error("Целевая папка не указана в конфигурации, либо не существует!");
+    Console.WriteLine("Целевая папка не указана в конфигурации, либо не существует! Нажмите любую клавишу для завершения сеанса!");
+    Console.ReadLine();
 }
